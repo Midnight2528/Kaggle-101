@@ -414,6 +414,6 @@ def predictions(models, iterations = 50):
     assert len(meter_reading) == set_size
     submission = pd.read_csv('/kaggle/input/ashrae-energy-prediction/sample_submission.csv')
     submission['meter_reading'] = np.clip(meter_reading, a_min=0, a_max=None) # clip min at zero
-    submission.to_csv('fe2_lgbm.csv', index=False)
+    submission.to_csv('submission.csv', index=False)
     print('We are done!')
 predictions(models)
