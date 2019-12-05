@@ -214,6 +214,9 @@ train_df = features_engineering(train_df)
 # transform target variable
 train_df['meter_reading'] = np.log1p(train_df["meter_reading"])
 
+site_GMT_offsets = [-5, 0, -7, -5, -8, 0, -5, -5, -5, -6, -7, -5, 0, -6, -5, -5]
+
+
 # %% [code]
 def compress_dataframe(df):
     result = df.copy()
@@ -261,7 +264,6 @@ def read_weather_train(fix_timestamps=True, interpolate_na=True, add_na_indicato
             if df[col].isna().any(): df[f"had_{col}"] = ~df[col].isna()
     return compress_dataframe(df).set_index(["site_id", "timestamp"])
 
-site_GMT_offsets = [-5, 0, -7, -5, -8, 0, -5, -5, -5, -6, -7, -5, 0, -6, -5, -5]
 def find_bad_zeros(X, y):
     """Returns an Index object containing only the rows which should be deleted."""
     Xy = X.assign(meter_reading=y, meter_id=X.meter)
