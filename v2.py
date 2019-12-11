@@ -10,6 +10,7 @@ from meteocalc import feels_like
 from sklearn import metrics
 import gc
 import os
+import joblib
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -305,7 +306,7 @@ def combined_train_data(fix_timestamps=True, interpolate_na=True, add_na_indicat
     return Xy.drop(columns=["meter_reading"]), Xy.meter_reading
 
 
-X, y = combined_train_data()
+
 
 
 def make_is_bad_zero(Xy_subset, min_interval=48, summer_start=3000, summer_end=7500):
@@ -350,16 +351,19 @@ def make_is_bad_zero(Xy_subset, min_interval=48, summer_start=3000, summer_end=7
 def find_bad_rows(X, y):
     return find_bad_zeros(X, y).union(find_bad_sitezero(X)).union(find_bad_building1099(X, y))
 
-
-# %% [code]
-# eliminate bad rows
-bad_rows = find_bad_rows(X, y)
-bad_rows = bad_rows.sort_values()
-bad_rows = pd.DataFrame(bad_rows)
-bad_rows = list(bad_rows[0])
-train_df.drop(bad_rows, inplace=True)
-train_df.reset_index(drop=True, inplace=True)
-
+if os.path.exists('processedTrain'):
+    train_df = joblib.load('processedTrain)
+else:
+    X, y = combined_train_data()
+    # %% [code]
+    # eliminate bad rows
+    bad_rows = find_bad_rows(X, y)
+    bad_rows = bad_rows.sort_values()
+    bad_rows = pd.DataFrame(bad_rows)
+    bad_rows = list(bad_rows[0])
+    train_df.drop(bad_rows, inplace=True)
+    train_df.reset_index(drop=True, inplace=True)
+    joblib.dump(train_df, 'processedTrain')
 # %% [code] {"scrolled":false}
 # declare target, categorical and numeric columns
 target = 'meter_reading'
