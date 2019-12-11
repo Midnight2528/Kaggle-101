@@ -16,9 +16,13 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
         print(os.path.join(dirname, filename))
 
 # %% [code]
-train_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/train.csv')
-building_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/building_metadata.csv')
-weather_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/weather_train.csv')
+train_df = pd.read_feather('input/train.feather')
+weather_train_df = pd.read_feather('input/weather_train.feather')
+building_df = pd.read_feather('input/building_metadata.feather')
+
+#train_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/train.csv')
+#building_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/building_metadata.csv')
+#weather_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/weather_train.csv')
 
 # %% [code]
 # Original code from https://www.kaggle.com/aitude/ashrae-missing-weather-data-handling by @aitude
@@ -378,7 +382,7 @@ models = run_lgbm(train_df)
 
 # %% [code]
 # read test
-test_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/test.csv')
+test_df = pd.read_feather('input/test.feather')
 row_ids = test_df["row_id"]
 test_df.drop("row_id", axis=1, inplace=True)
 test_df = reduce_mem_usage(test_df)
@@ -389,7 +393,7 @@ del building_df
 gc.collect()
 
 # fill test weather data
-weather_df = pd.read_csv('/kaggle/input/ashrae-energy-prediction/weather_test.csv')
+weather_df = pd.read_feather('input/weather_test.feather')
 weather_df = fill_weather_dataset(weather_df)
 weather_df = reduce_mem_usage(weather_df)
 
