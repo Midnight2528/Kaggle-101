@@ -1,0 +1,103 @@
+# %% [markdown]
+# ## Two-fold LightGBM Model split half-and-half
+# The data is split into two based on time. Each half is used as the training data for a model.
+# 
+# **Half 1:** The first 50% rows of train data   
+# **Half 2:** The last 50% rows of train data
+
+# %% [code]
+X_half_1 = X_train[:int(X_train.shape[0] / 2)]
+X_half_2 = X_train[int(X_train.shape[0] / 2):]
+
+y_half_1 = y_train[:int(X_train.shape[0] / 2)]
+y_half_2 = y_train[int(X_train.shape[0] / 2):]
+
+categorical_features = ["building_id", "site_id", "meter", "primary_use", "hour", "weekday"]
+
+d_half_1 = lgb.Dataset(X_half_1, label=y_half_1, categorical_feature=categorical_features, free_raw_data=False)
+d_half_2 = lgb.Dataset(X_half_2, label=y_half_2, categorical_feature=categorical_features, free_raw_data=False)
+
+watchlist_1 = [d_half_1, d_half_2]
+watchlist_2 = [d_half_2, d_half_1]
+
+params = {
+    "objective": "regression",
+    "boosting": "gbdt",
+    "num_leaves": 40,
+    "learning_rate": 0.05,
+    "feature_fraction": 0.85,
+    "reg_lambda": 2,
+    "metric": "rmse"
+}
+
+print("Building model with first half and validating on second half:")
+model_half_1 = lgb.train(params, train_set=d_half_1, num_boost_round=1000, valid_sets=watchlist_1, verbose_eval=200, early_stopping_rounds=200)
+
+print("Building model with second half and validating on first half:")
+model_half_2 = lgb.train(params, train_set=d_half_2, num_boost_round=1000, valid_sets=watchlist_2, verbose_eval=200, early_stopping_rounds=200)
+
+# %% [markdown]
+# ## Feature Importance
+# Plotting the feature importance from LGBM.
+
+# %% [code]
+df_fimp_1 = pd.DataFrame()
+df_fimp_1["feature"] = X_train.columns.values
+df_fimp_1["importance"] = model_half_1.feature_importance()
+df_fimp_1["half"] = 1
+
+df_fimp_2 = pd.DataFrame()
+df_fimp_2["feature"] = X_train.columns.values
+df_fimp_2["importance"] = model_half_2.feature_importance()
+df_fimp_2["half"] = 2
+
+df_fimp = pd.concat([df_fimp_1, df_fimp_2], axis=0)
+
+plt.figure(figsize=(14, 7))
+sns.barplot(x="importance", y="feature", data=df_fimp.sort_values(by="importance", ascending=False))
+plt.title("LightGBM Feature Importance")
+plt.tight_layout()
+
+# %% [code] {"_kg_hide-output":true,"_kg_hide-input":true}
+del X_train, y_train, X_half_1, X_half_2, y_half_1, y_half_2, d_half_1, d_half_2, watchlist_1, watchlist_2, df_fimp_1, df_fimp_2, df_fimp
+gc.collect()
+
+# %% [markdown]
+# ## Preparing test data
+# Preparing test data with same features as train data.
+
+# %% [code] {"_kg_hide-output":true}
+df_test = pd.read_csv(path_test)
+weather_test = pd.read_csv(path_weather_test)
+
+df_test = reduce_mem_usage(df_test)
+weather_test = reduce_mem_usage(weather_test)
+
+X_test, row_ids = prepare_data(df_test, building, weather_test, test=True)
+
+# %% [code] {"_kg_hide-input":true,"_kg_hide-output":true}
+del df_test, building, weather_test
+gc.collect()
+
+# %% [markdown]
+# ## Scoring test data
+# Averaging predictions from the two half train data models.
+
+# %% [code] {"_kg_hide-output":true}
+pred = np.expm1(model_half_1.predict(X_test, num_iteration=model_half_1.best_iteration)) / 2
+
+del model_half_1
+gc.collect()
+
+pred += np.expm1(model_half_2.predict(X_test, num_iteration=model_half_2.best_iteration)) / 2
+    
+del model_half_2
+gc.collect()
+
+# %% [markdown]
+# ## Submission
+# Preparing final file for submission.
+
+# %% [code]
+submission = pd.DataFrame({"row_id": row_ids, "meter_reading": np.clip(pred, 0, a_max=None)})
+submission.to_csv("submission.csv", index=False)
