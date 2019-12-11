@@ -206,28 +206,29 @@ def features_engineering(df):
     return df
 
 
-# %% [code]
-# weather manipulation
-weather_df = fill_weather_dataset(weather_df)
-
-# memory reduction
-train_df = reduce_mem_usage(train_df, use_float16=True)
-building_df = reduce_mem_usage(building_df, use_float16=True)
-weather_df = reduce_mem_usage(weather_df, use_float16=True)
-
-# merge data
-train_df = train_df.merge(building_df, left_on='building_id', right_on='building_id', how='left')
-train_df = train_df.merge(weather_df, how='left', left_on=['site_id', 'timestamp'], right_on=['site_id', 'timestamp'])
-del weather_df
-gc.collect()
-
-# feature engineering
-train_df = features_engineering(train_df)
-
-# transform target variable
-train_df['meter_reading'] = np.log1p(train_df["meter_reading"])
-
-site_GMT_offsets = [-5, 0, -7, -5, -8, 0, -5, -5, -5, -6, -7, -5, 0, -6, -5, -5]
+if not os.path.exists('processedTrain'):
+    # %% [code]
+    # weather manipulation
+    weather_df = fill_weather_dataset(weather_df)
+    
+    # memory reduction
+    train_df = reduce_mem_usage(train_df, use_float16=True)
+    building_df = reduce_mem_usage(building_df, use_float16=True)
+    weather_df = reduce_mem_usage(weather_df, use_float16=True)
+    
+    # merge data
+    train_df = train_df.merge(building_df, left_on='building_id', right_on='building_id', how='left')
+    train_df = train_df.merge(weather_df, how='left', left_on=['site_id', 'timestamp'], right_on=['site_id', 'timestamp'])
+    del weather_df
+    gc.collect()
+    
+    # feature engineering
+    train_df = features_engineering(train_df)
+    
+    # transform target variable
+    train_df['meter_reading'] = np.log1p(train_df["meter_reading"])
+    
+    site_GMT_offsets = [-5, 0, -7, -5, -8, 0, -5, -5, -5, -6, -7, -5, 0, -6, -5, -5]
 
 
 # %% [code]
