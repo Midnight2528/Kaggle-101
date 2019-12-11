@@ -18,10 +18,11 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
     for filename in filenames:
         print(os.path.join(dirname, filename))
 
-# %% [code]
-train_df = pd.read_csv('train.csv')
-building_df = pd.read_csv('building_metadata.csv')
-weather_df = pd.read_csv('weather_train.csv')
+if !os.path.exists('processedTrain'):
+    # %% [code]
+    train_df = pd.read_csv('train.csv')
+    building_df = pd.read_csv('building_metadata.csv')
+    weather_df = pd.read_csv('weather_train.csv')
 
 
 # %% [code]
