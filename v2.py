@@ -353,7 +353,7 @@ def find_bad_rows(X, y):
     return find_bad_zeros(X, y).union(find_bad_sitezero(X)).union(find_bad_building1099(X, y))
 
 if os.path.exists('processedTrain'):
-    train_df = joblib.load('processedTrain)
+    train_df = joblib.load('processedTrain')
 else:
     X, y = combined_train_data()
     # %% [code]
