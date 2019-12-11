@@ -18,7 +18,7 @@ for dirname, _, filenames in os.walk('/kaggle/input'):
     for filename in filenames:
         print(os.path.join(dirname, filename))
 
-if !os.path.exists('processedTrain'):
+if not os.path.exists('processedTrain'):
     # %% [code]
     train_df = pd.read_csv('train.csv')
     building_df = pd.read_csv('building_metadata.csv')
