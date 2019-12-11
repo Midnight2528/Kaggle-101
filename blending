@@ -80,7 +80,6 @@ def reduce_mem_usage(df, use_float16=False):
     
     return df
 
-# %% [code]
 root = Path('../input/ashrae-feather-format-for-fast-loading')
 
 train_df = pd.read_feather(root/'train.feather')
@@ -89,7 +88,7 @@ test_df = pd.read_feather(root/'test.feather')
 #weather_test_df = pd.read_feather(root/'weather_test.feather')
 building_meta_df = pd.read_feather(root/'building_metadata.feather')
 
-# %% [code]
+
 leak_df = pd.read_feather('../input/ashare-leak-data-station-2/leak.feather')
 
 leak_df.fillna(0, inplace=True)
@@ -108,12 +107,10 @@ print (len(leak_df) / len(train_df))
 del train_df
 gc.collect()
 
-# %% [code]
 sample_submission1 = pd.read_csv('../input/submission.csv', index_col=0)
 sample_submission2 = pd.read_csv('../input/ashrae-half-and-half/submission.csv', index_col=0)
 sample_submission3 = pd.read_csv('../input/ashrae-highway-kernel-route4/submission.csv', index_col=0)
 
-# %% [code]
 test_df['pred1'] = sample_submission1.meter_reading
 test_df['pred2'] = sample_submission2.meter_reading
 test_df['pred3'] = sample_submission3.meter_reading
@@ -126,7 +123,6 @@ gc.collect()
 test_df = reduce_mem_usage(test_df)
 leak_df = reduce_mem_usage(leak_df)
 
-# %% [code]
 leak_df = leak_df.merge(test_df[['building_id', 'meter', 'timestamp', 'pred1', 'pred2', 'pred3', 'row_id']], left_on = ['building_id', 'meter', 'timestamp'], right_on = ['building_id', 'meter', 'timestamp'], how = "left")
 leak_df = leak_df.merge(building_meta_df[['building_id', 'site_id']], on='building_id', how='left')
 
@@ -195,15 +191,11 @@ for i in range(N):
     vl1p = np.log1p(v)
     scores[i] = np.sqrt(mean_squared_error(vl1p, leak_df.meter_reading_l1p))
 
-# %% [code]
 plt.plot(scores)
 
-# %% [code]
 best_weight = np.argmin(scores) *  1./N
 print (scores.min(), best_weight)
 
-# %% [code]
-# and more
 scores = np.zeros(N,)
 for i in range(N):
     p = i * 1./N
@@ -214,7 +206,6 @@ for i in range(N):
 # %% [code]
 plt.plot(scores)
 
-# %% [code]
 best_weight2 = np.argmin(scores) *  1./N
 print (scores.min(), best_weight2)
 
