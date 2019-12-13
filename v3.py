@@ -441,6 +441,8 @@ test_df = pd.read_csv('test.csv')
 row_ids = test_df["row_id"]
 test_df.drop("row_id", axis=1, inplace=True)
 test_df = reduce_mem_usage(test_df)
+building_df = pd.read_csv('building_metadata.csv')
+building_df = reduce_mem_usage(building_df, use_float16=True)
 
 # merge with building info
 test_df = test_df.merge(building_df, left_on='building_id', right_on='building_id', how='left')
