@@ -52,21 +52,26 @@ leakdata = reduce_mem_usage(leakdata, use_float16=True)
 
 
 if not os.path.exists('dictionary'):
-    dictionary = dict()
-    for i in range(1449):
-        dictionary[i] = 0
+    if not os.path.exists('badLeakRows'):
+        dictionary = dict()
+        for i in range(1449):
+            dictionary[i] = 0
 
+        badLeakRows = []
 
-    for i in range(len(leakdata)):
-        if leakdata['meter_reading'][i] > dictionary.get(leakdata['building_id'][i]):
-            dictionary[leakdata['building_id'][i]] = leakdata['meter_reading'][i]
-        if i%1000 == 0:
-            print('Row '+str(i)+' done')
+        for i in range(len(leakdata)):
+            if leakdata['meter_reading'][i] > dictionary.get(leakdata['building_id'][i]):
+                dictionary[leakdata['building_id'][i]] = leakdata['meter_reading'][i]
+            if (int(leakdata['building_id'][i]) == 13) or (int(leakdata['building_id'][i]) == 14):
+                badLeakRows.append(i)
+            if i%1000 == 0:
+                print('Row '+str(i) + ' of ' + str(len(leakdata)) + ' done')
 
-    joblib.dump(dictionary, 'dictionary')
-
-else:
-    dictionary = joblib.load('dictionary')
+        joblib.dump(dictionary, 'dictionary')
+        joblib.dump(badLeakRows, 'badLeakRows')
+    else:
+        dictionary = joblib.load('dictionary')
+        badLeakRows = joblib.load('badLeakRows')
 
 plt.scatter(list(dictionary.keys()), list(dictionary.values()))
 plt.xlabel('Building ID')
@@ -76,3 +81,6 @@ for i in range(1449):
     if dictionary.get(i)> 2000000:
         print('Building ID: ' + str(i) + ' Meter Reading: '+ str(dictionary.get(i)))
 
+print('Dropping bad rows...')
+leakdata.drop(leakdata.index[badLeakRows])
+leakdata.to_feather('leak.feather')
