@@ -76,7 +76,3 @@ for i in range(1449):
     if dictionary.get(i)> 2000000:
         print('Building ID: ' + str(i) + ' Meter Reading: '+ str(dictionary.get(i)))
 
-print('Dropping bad rows...')
-for i in range(len(leakdata)):
-    if (int(leakdata['building_id'][i]) == 13) or (int(leakdata['building_id'][i]) == 14):
-        leakdata.drop(leakdata.index[i])
