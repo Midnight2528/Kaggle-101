@@ -52,20 +52,19 @@ leakdata = reduce_mem_usage(leakdata, use_float16=True)
 
 
 if not os.path.exists('dictionary'):
-    if not os.path.exists('badLeakRows'):
-        dictionary = dict()
-        for i in range(1449):
-            dictionary[i] = 0
+    dictionary = dict()
+    for i in range(1449):
+        dictionary[i] = 0
 
 
-        for i in range(len(leakdata)):
-            if leakdata['meter_reading'][i] > dictionary.get(leakdata['building_id'][i]):
-                dictionary[leakdata['building_id'][i]] = leakdata['meter_reading'][i]
-            if i%1000 == 0:
-                print('Row '+str(i) + ' of ' + str(len(leakdata)) + ' done')
-        joblib.dump(dictionary, 'dictionary')
-    else:
-        dictionary = joblib.load('dictionary')
+    for i in range(len(leakdata)):
+        if leakdata['meter_reading'][i] > dictionary.get(leakdata['building_id'][i]):
+            dictionary[leakdata['building_id'][i]] = leakdata['meter_reading'][i]
+        if i%1000 == 0:
+            print('Row '+str(i) + ' of ' + str(len(leakdata)) + ' done')
+    joblib.dump(dictionary, 'dictionary')
+else:
+    dictionary = joblib.load('dictionary')
 
 plt.scatter(list(dictionary.keys()), list(dictionary.values()))
 plt.xlabel('Building ID')
