@@ -74,7 +74,6 @@ def predictions(models, iterations=50):
     meter_reading = []
     for i in tqdm(range(iterations)):
         pos = i * batch_size
-        tfid = TfidfVectorizer()
         fold_preds = [np.expm1(model.predict(test_df[features].iloc[pos: pos + batch_size])) for model in models]
         meter_reading.extend(np.mean(fold_preds, axis=0))
 
